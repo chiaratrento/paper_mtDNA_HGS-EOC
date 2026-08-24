@@ -2,7 +2,6 @@
 
 This repository contains the analysis code supporting Trento et al., *"Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer"*, submitted to the International Journal of Cancer (IJC).
 
-It is provided in response to the editorial requirement that computational tools/code used for data and statistical analysis be made publicly available.
 
 ## Repository structure
 
