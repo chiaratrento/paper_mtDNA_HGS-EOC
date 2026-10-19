@@ -38,7 +38,7 @@ R (≥4.5) with the following key packages: `DESeq2`, `tximport`, `edgeR`, `EDAS
 
 ## Citation
 
-Trento et al. Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer. *International Journal of Cancer*.
+Trento et al. Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer.
 
 ## Contact
 
