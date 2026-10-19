@@ -1,6 +1,6 @@
 # Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer
 
-This repository contains the analysis code supporting Trento et al., *"Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer"*, submitted to the International Journal of Cancer (IJC).
+This repository contains the analysis code supporting Trento et al., *"Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer"*.
 
 
 ## Repository structure
