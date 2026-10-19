@@ -32,7 +32,7 @@ R (≥4.5) with the following key packages: `DESeq2`, `tximport`, `edgeR`, `EDAS
 
 ## Data availability
 
-- **Raw RNA-seq data**: deposited in the NCBI Sequence Read Archive (SRA) under BioProject accession number `[XXXXXXX]`, publicly accessible upon publication.
+- **Raw RNA-seq data**: deposited in the NCBI Sequence Read Archive (SRA) under BioProject accession number `[PRJNA1401716]`, publicly accessible upon publication.
 - **Targeted mtDNA sequencing data**: not currently required for public deposition per journal policy; available from the corresponding author upon reasonable request.
 - **Processed count matrices / sample-level clinical metadata**: not included in this repository due to patient privacy restrictions; available from the corresponding author upon reasonable request, subject to institutional data sharing agreements.
 
