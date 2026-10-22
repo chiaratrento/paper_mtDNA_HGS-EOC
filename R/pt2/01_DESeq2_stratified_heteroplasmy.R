@@ -59,12 +59,12 @@ heteroplasmy_meta <- heteroplasmy_meta %>% filter(sample_id != "C_34")
 
 table(heteroplasmy_meta$heteroplasmy_group)
 
-## Output directory for this revision's analysis
-out_dir <- file.path(results_dir, "revision/")
+## Output directory
+out_dir <- file.path(results_dir, "pt2/")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 ## ----------------------------------------------------------------------
-## 1. Import counts (tximport / Salmon) - same pipeline as original comp_3 analysis
+## 1. Import counts (tximport / Salmon)
 ## ----------------------------------------------------------------------
 
 samples <- list.files(path = salmon_dir, full.names = TRUE, pattern = "B_")
@@ -112,9 +112,7 @@ if (length(missing_from_rnaseq) > 0) {
           paste(missing_from_rnaseq, collapse = ", "))
 }
 
-## C_34 was already dropped from heteroplasmy_meta above, so the join
-## leaves it with NA heteroplasmy_group - drop it from the count matrix too
-## (mirrors `dds <- dds[,dds$"Sample Name" != "C_34"]` in the original comp_3 script).
+
 meta_data <- meta_data %>% filter(!is.na(heteroplasmy_group))
 txi_counts <- txi_counts[, meta_data$`Sample Name`]
 txi$counts <- txi$counts[, meta_data$`Sample Name`]
@@ -321,10 +319,7 @@ report_significance <- function(kegg_res, label) {
     contrast              = label,
     n_nominal_p05          = sum(df$pvalue < 0.05, na.rm = TRUE),
     n_significant_padj05   = sum(df$p.adjust < 0.05, na.rm = TRUE),
-    ## 0.15 = threshold actually used for Fig 2B in the original manuscript
-    ## (comp_3.Rmd: k2 <- k2[k2$p.adjust < 0.15,]) - reported for direct
-    ## comparability, while flagging to Reviewer 3 that 0.15 is more lenient
-    ## than the conventional 0.05/0.10 FDR standard.
+    ## 0.15 = threshold actually used for Fig 2B in the manuscript
     n_significant_padj15   = sum(df$p.adjust < 0.15, na.rm = TRUE)
   )
 }
@@ -523,7 +518,7 @@ for (obj_name in c("reactome_HIGH_vs_WT", "reactome_MID_vs_WT", "reactome_MID_vs
 ## ============================================================================
 ## Notes:
 ## - Run from the repository root; all paths are set in R/00_config.R.
-## - Outputs go to results/revision/.
+## - Outputs go to results/pt2/.
 ## - Comparisons involving the small MID group (n = 7) showed poorly calibrated
 ##   p-value distributions on diagnostic inspection: they are reported as
 ##   hypothesis-generating only (see README).

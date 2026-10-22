@@ -1,7 +1,7 @@
 ## ============================================================================
 ## Figure panel 1 - volcano plot (MUT vs WT) and KEGG GSEA bubble plot
 ##
-## Requires: R/original/01_WT_vs_MUT_DESeq2_enrichment.Rmd (res, res_df, kk2)
+## Requires: R/pt1/01_WT_vs_MUT_DESeq2_enrichment.Rmd (res, res_df, kk2)
 ##
 ## The DESeq2 contrast is WT_vs_MUT; here every sign is flipped so that the
 ## figure reads MUT vs WT (positive log2FC / "upregulated" = higher in MUT).

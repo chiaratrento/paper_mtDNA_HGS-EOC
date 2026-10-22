@@ -10,10 +10,10 @@ This repository contains the analysis code supporting Trento et al., *"Homoplasm
 ├── R/
 │   ├── 00_config.R                                   # all input/output paths (edit here)
 │   ├── 01_preprocessing_notes.md                     # FastQC / MultiQC / cutadapt / Salmon (shell, not R)
-│   ├── original/                                     # analyses of the submitted manuscript
+│   ├── pt1/                                     # analyses of the submitted manuscript
 │   │   ├── 01_WT_vs_MUT_DESeq2_enrichment.Rmd        # tximport, QC, DESeq2 (~ comp_3), ORA, GSEA, Pathview
 │   │   └── 02_xCell_immune_infiltration.R            # xCell cell-type scores, WT vs MUT
-│   └── revision/                                     # analyses added in response to the reviewers
+│   └── pt2/                                     # analyses added in response to the reviewers
 │       ├── 01_DESeq2_stratified_heteroplasmy.R       # WT / LOW / MID / HIGH design, sensitivity groupings,
 │       │                                             #   continuous VAF (LRT), ORA + GSEA (KEGG, Reactome)
 │       ├── 02_PCA_BRCA_annotation.R                  # PCA by BRCA1/2 status, Fisher's exact test
@@ -34,12 +34,12 @@ metadata are set once in `R/00_config.R`; these files are not distributed
 
 | Order | Script | Main outputs |
 |---|---|---|
-| 1 | `R/original/01_WT_vs_MUT_DESeq2_enrichment.Rmd` | DEG and GSEA tables, Pathview maps, `results/WT_vs_MUT_objects.RData` |
-| 2 | `R/original/02_xCell_immune_infiltration.R` | xCell scores, Wilcoxon tests, `results/xcell_objects.RData` |
+| 1 | `R/pt1/01_WT_vs_MUT_DESeq2_enrichment.Rmd` | DEG and GSEA tables, Pathview maps, `results/WT_vs_MUT_objects.RData` |
+| 2 | `R/pt1/02_xCell_immune_infiltration.R` | xCell scores, Wilcoxon tests, `results/xcell_objects.RData` |
 | 3 | `R/figures/figure_panel*.R` | figure panels in `results/figures/` |
-| 4 | `R/revision/01_DESeq2_stratified_heteroplasmy.R` | `results/revision/`: DEG, ORA/GSEA tables, significance summaries, RDS objects |
-| 5 | `R/revision/02_PCA_BRCA_annotation.R` | PCA by BRCA status, Fisher's test |
-| 6 | `R/revision/03_GSEA_dotplot_4comparisons.R` | GSEA dot plot (LOW vs WT, MID vs WT, HIGH vs LOW, HIGH vs MID) |
+| 4 | `R/pt2/01_DESeq2_stratified_heteroplasmy.R` | `results/pt2/`: DEG, ORA/GSEA tables, significance summaries, RDS objects |
+| 5 | `R/pt2/02_PCA_BRCA_annotation.R` | PCA by BRCA status, Fisher's test |
+| 6 | `R/pt2/03_GSEA_dotplot_4comparisons.R` | GSEA dot plot (LOW vs WT, MID vs WT, HIGH vs LOW, HIGH vs MID) |
 
 ## Analysis pipeline
 
@@ -47,8 +47,8 @@ metadata are set once in `R/00_config.R`; these files are not distributed
 2. **Quantification**: Salmon against the GENCODE GRCh38.p13 human transcriptome; gene-level counts with `tximport`.
 3. **Sample QC**: samples C_34 and C_39 excluded for low sequencing quality. Library sizes, RLE plots, PCA (rlog/vst) and comparison of normalisation methods (upper-quartile, full-quantile, TMM, RLE).
 4. **Differential expression**: `DESeq2`, genes with mean count ≥ 10. DEGs: `padj < 0.05` (Benjamini–Hochberg) and `|log2FC| > 0.6`.
-   - *Original analysis*: near-homoplasmic variants vs all other samples (`~ comp_3`).
-   - *Revision*: four heteroplasmy groups by tumour-corrected VAF, WT (no variant), LOW (0–50%), MID (50–90%), HIGH (≥ 90%), all six pairwise contrasts; sensitivity analyses with the three-tier grouping undetectable (< 10%) / intermediate (10–90%) / high (≥ 90%), with WT and LOW merged, and with VAF as a continuous covariate (likelihood-ratio test).
+   - *pt1*: near-homoplasmic variants vs all other samples (`~ comp_3`).
+   - *pt2*: four heteroplasmy groups by tumour-corrected VAF, WT (no variant), LOW (0–50%), MID (50–90%), HIGH (≥ 90%), all six pairwise contrasts; sensitivity analyses with the three-tier grouping undetectable (< 10%) / intermediate (10–90%) / high (≥ 90%), with WT and LOW merged, and with VAF as a continuous covariate (likelihood-ratio test).
 5. **Pathway enrichment**: over-representation analysis (`enrichGO`, `enrichKEGG`, `enrichPathway`) and GSEA on genes ranked by the DESeq2 Wald statistic (`gseGO`, `gseKEGG`, `gsePathway`). All p-values are BH-adjusted; the number of pathways significant at nominal p < 0.05, padj < 0.05 and padj < 0.15 is reported for every contrast. Leading-edge overlap between pathways is assessed with the Jaccard index.
 6. **Immune infiltration**: xCell scores compared between groups with the Wilcoxon rank-sum test (FDR-adjusted).
 

@@ -3,7 +3,7 @@
 ## Common lymphoid progenitor (CLP) and Hematopoietic stem cell are excluded;
 ## Naive B cell is always kept.
 ##
-## Requires: R/original/02_xCell_immune_infiltration.R (xcell_objects.RData)
+## Requires: R/pt1/02_xCell_immune_infiltration.R (xcell_objects.RData)
 ## ============================================================================
 
 source("R/00_config.R")

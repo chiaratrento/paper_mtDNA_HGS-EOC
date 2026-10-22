@@ -2,7 +2,7 @@
 ## Figure panel 3 - KEGG Pathview maps: Oxidative phosphorylation (hsa00190)
 ## and Citrate cycle (hsa00020)
 ##
-## Requires the pathview PNGs written by R/original/01_WT_vs_MUT_DESeq2_enrichment.Rmd
+## Requires the pathview PNGs written by R/pt1/01_WT_vs_MUT_DESeq2_enrichment.Rmd
 ## ============================================================================
 
 source("R/00_config.R")
