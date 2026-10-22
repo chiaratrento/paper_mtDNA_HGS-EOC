@@ -34,10 +34,10 @@ metadata are set once in `R/00_config.R`; these files are not distributed
 
 | Order | Script | Main outputs |
 |---|---|---|
-| 1 | `R/pt1/01_WT_vs_MUT_DESeq2_enrichment.Rmd` | DEG and GSEA tables, Pathview maps, `results/WT_vs_MUT_objects.RData` |
-| 2 | `R/pt1/02_xCell_immune_infiltration.R` | xCell scores, Wilcoxon tests, `results/xcell_objects.RData` |
-| 3 | `R/figures/figure_panel*.R` | figure panels in `results/figures/` |
-| 4 | `R/pt2/01_DESeq2_stratified_heteroplasmy.R` | `results/pt2/`: DEG, ORA/GSEA tables, significance summaries, RDS objects |
+| 1 | `R/pt1/01_WT_vs_MUT_DESeq2_enrichment.Rmd` | DEG and GSEA tables, Pathview maps, `WT_vs_MUT_objects.RData` |
+| 2 | `R/pt1/02_xCell_immune_infiltration.R` | xCell scores, Wilcoxon tests, `xcell_objects.RData` |
+| 3 | `R/figures/figure_panel*.R` | figure panels |
+| 4 | `R/pt2/01_DESeq2_stratified_heteroplasmy.R` | DEG, ORA/GSEA tables, significance summaries, RDS objects |
 | 5 | `R/pt2/02_PCA_BRCA_annotation.R` | PCA by BRCA status, Fisher's test |
 | 6 | `R/pt2/03_GSEA_dotplot_4comparisons.R` | GSEA dot plot (LOW vs WT, MID vs WT, HIGH vs LOW, HIGH vs MID) |
 
