@@ -1,6 +1,6 @@
 # Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer
 
-This repository contains the analysis code supporting Trento et al., *"Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer"*, submitted to the International Journal of Cancer (IJC).
+This repository contains the analysis code supporting Trento et al., *"Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer"*.
 
 
 ## Repository structure
@@ -59,7 +59,7 @@ R (≥ 4.5) with: `DESeq2`, `tximport`, `edgeR`, `EDASeq`, `clusterProfiler`, `R
 
 ## Data availability
 
-- **Raw RNA-seq data**: deposited in the NCBI Sequence Read Archive (SRA) under BioProject accession number `[XXXXXXX]`, publicly accessible upon publication.
+- **Raw RNA-seq data**: deposited in the NCBI Sequence Read Archive (SRA) under BioProject accession number `[PRJNA1401716]`, publicly accessible upon publication.
 - **Targeted mtDNA sequencing data**: not currently required for public deposition per journal policy; available from the corresponding author upon reasonable request.
 - **Processed count matrices / sample-level clinical metadata**: not included in this repository due to patient privacy restrictions; available from the corresponding author upon reasonable request, subject to institutional data sharing agreements.
 
