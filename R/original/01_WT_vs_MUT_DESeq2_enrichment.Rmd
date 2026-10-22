@@ -1,0 +1,274 @@
+---
+title: "WT vs MUT (comp_3): import, QC, DESeq2 and pathway enrichment"
+author: "Ilaria Billato"
+date: "2023-04-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+## run from the repository root, whatever folder the Rmd is knitted from
+knitr::opts_knit$set(root.dir = normalizePath(file.path(getwd(), "..", "..")))
+```
+
+Original analysis of the submitted manuscript (Fig. 2): near-homoplasmic
+mtDNA variants vs all other samples, design `~ comp_3`.
+
+* Sequencing: Illumina, 150 bp paired-end
+* QC: FastQC, MultiQC; trimming: cutadapt
+* Quantification: Salmon against GENCODE GRCh38.p13; gene-level counts with tximport
+* Differential expression: DESeq2
+* Enrichment: clusterProfiler / ReactomePA
+
+```{r libraries, message=FALSE, warning=FALSE}
+source("R/00_config.R")
+
+library(DESeq2)
+library(tidyverse)
+library(RColorBrewer)
+library(pheatmap)
+library(tximport)
+library(ggplot2)
+library(ggrepel)
+library(readxl)
+library(edgeR)
+library(EDASeq)
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+library(clusterProfiler)
+library(ReactomePA)
+library(pathview)
+```
+
+## Import counts and metadata
+
+```{r import, message=FALSE, warning=FALSE}
+samples <- list.files(path = salmon_dir, full.names = TRUE, pattern = "B_")
+files_B <- file.path(samples, "quant.sf")
+names(files_B) <- gsub(".*\\/B_(\\d+)_.*", "B_\\1", files_B)
+
+samples <- list.files(path = salmon_dir, full.names = TRUE, pattern = "C_")
+files_C <- file.path(samples, "quant.sf")
+## the first 24 C_ folders belong to a different project and are not part of this cohort
+files_C <- files_C[-c(1:24)]
+names(files_C) <- gsub(".*\\/C_(\\d+)_.*", "C_\\1", files_C)
+
+files   <- c(files_B, files_C)
+tx2gene <- read.delim(tx2gene_path)
+
+txi   <- tximport(files, type = "salmon", tx2gene = tx2gene[, c(1, 3)])
+txi_c <- round(txi$counts)
+data  <- txi_c
+colSums(data)
+
+meta_data <- read_excel(sample_list, sheet = "Foglio2")
+meta_data <- meta_data[-39, ]          # C_39 excluded (low sequencing quality)
+meta_data <- as.data.frame(meta_data)
+meta_data <- meta_data[order(meta_data$`Sample Name`), ]
+
+se <- SummarizedExperiment(assays = list(counts = data), colData = meta_data)
+table(rowSums(assay(se)) > 0)
+
+## low-count filter: mean count >= 10
+filter <- rowMeans(assay(se)) >= 10
+table(filter)
+filtered <- se[filter, ]
+filtered
+```
+
+## DESeq2
+
+```{r deseq2, message=FALSE, warning=FALSE}
+dds <- DESeqDataSetFromTximport(txi, colData = meta_data, ~ comp_3)
+
+## C_34 removed (low sequencing quality)
+dds  <- dds[, dds$`Sample Name` != "C_34"]
+keep <- rowMeans(counts(dds)) >= 10
+dds  <- dds[keep, ]
+
+dds <- DESeq(dds)
+cbind(resultsNames(dds))
+res <- results(dds, name = "comp_3_WT_vs_MUT", alpha = 0.05)
+table(dds$comp_3)
+summary(res)
+```
+
+## Sample QC: library sizes, RLE, normalisation comparison
+
+```{r qc, message=FALSE, warning=FALSE}
+se_qc <- SummarizedExperiment(assays = list(counts = counts(dds)), colData = colData(dds))
+
+pal <- brewer.pal(8, "Set2")
+barplot(colSums(assay(se_qc)), las = 2, col = pal[as.factor(se_qc$comp_3)], cex.axis = 0.75)
+legend("topleft", levels(as.factor(se_qc$comp_3)), pch = 19, col = pal[1:2], bty = "n")
+
+plotRLE(assay(se_qc), col = pal[as.factor(se_qc$comp_3)], outline = FALSE, las = 2, cex.axis = 0.75)
+plotPCA(assay(se_qc), col = pal[as.factor(se_qc$comp_3)], cex.axis = 0.75)
+
+assay(se_qc, "uq") <- betweenLaneNormalization(assay(se_qc), which = "upper")
+assay(se_qc, "fq") <- betweenLaneNormalization(assay(se_qc), which = "full")
+tmm_factors <- calcNormFactors(assay(se_qc), method = "TMM")
+assay(se_qc, "tmm") <- cpm(assay(se_qc), lib.size = tmm_factors * colSums(assay(se_qc)))
+rle_factors <- calcNormFactors(assay(se_qc), method = "RLE")
+assay(se_qc, "rle") <- cpm(assay(se_qc), lib.size = rle_factors * colSums(assay(se_qc)))
+
+for (a in c("counts", "uq", "fq", "tmm", "rle")) {
+  plotRLE(assay(se_qc, a), las = 2, outline = FALSE, main = a, cex.axis = 0.75,
+          col = pal[as.factor(se_qc$comp_3)])
+}
+for (a in c("counts", "uq", "fq", "tmm", "rle")) {
+  plotPCA(assay(se_qc, a), main = a, cex.axis = 0.75, col = pal[as.factor(se_qc$comp_3)])
+}
+```
+
+## Differentially expressed genes
+
+DEG definition: `padj < 0.05` and `|log2FC| > 0.6`. Note that the contrast is
+`WT_vs_MUT`, i.e. positive log2FC = higher in WT (the sign is flipped to MUT vs WT
+in the figure script).
+
+```{r deg, message=FALSE, warning=FALSE}
+geni_de <- as.data.frame(res)
+geni_de <- na.omit(geni_de[geni_de$padj < 0.05, ])
+geni_de$type <- ifelse(geni_de$log2FoldChange < 0, "downregulated", "upregulated")
+geni_de$symbol <- mapIds(org.Hs.eg.db, rownames(geni_de), "SYMBOL", "ENSEMBL")
+write.csv(geni_de, file.path(results_dir, "DEG_WT_vs_MUT_padj005.csv"))
+
+table(res$pvalue <= 0.05)
+table(res$padj <= 0.05)
+
+rld <- rlog(dds)
+vsd <- vst(dds)
+```
+
+## Volcano plot
+
+```{r volcano}
+res_df <- as.data.frame(res)
+res_df$diffexpressed <- "Not sig"
+res_df$diffexpressed[res_df$log2FoldChange >  0.6 & res_df$padj < 0.05] <- "Up"
+res_df$diffexpressed[res_df$log2FoldChange < -0.6 & res_df$padj < 0.05] <- "Down"
+
+ggplot(res_df, aes(x = log2FoldChange, y = -log10(padj), col = diffexpressed)) +
+  scale_color_manual(values = c("#4F9BF2", "#BEBEBE", "#BF011D")) +
+  labs(col = "") + xlim(-7, 7) + ylim(0, 4) +
+  geom_point(size = 1.5) +
+  theme_classic(base_size = 15)
+```
+
+## PCA
+
+```{r pca, message=FALSE, warning=FALSE}
+for (obj in list(rlog = rld, vst = vsd)) {
+  pcaData <- plotPCA(obj, intgroup = "comp_3", returnData = TRUE)
+  percentVar <- round(100 * attr(pcaData, "percentVar"))
+  pcaData$sample <- dds$`Sample Name`
+  print(
+    ggplot(pcaData, aes(PC1, PC2, colour = as.character(comp_3))) +
+      geom_point(size = 2.5) + theme_bw() + labs(color = "comp_3") +
+      geom_text_repel(aes(label = sample), size = 3) +
+      xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+      ylab(paste0("PC2: ", percentVar[2], "% variance"))
+  )
+}
+ggsave(file.path(figures_dir, "PCA_vst_WT_vs_MUT.png"), width = 12, height = 9, dpi = 300)
+```
+
+## Gene identifiers for enrichment
+
+Gene IDs are mapped from `rownames(res)` so that names and statistics are
+guaranteed to be in the same order. (An earlier version mapped the IDs from
+`rownames(filtered)`, which is filtered on all samples *before* removing C_34,
+while `res` is filtered *after*: the two gene lists are aligned only if the
+filter keeps exactly the same genes - checked below.)
+
+```{r ids, message=FALSE, warning=FALSE}
+cat("rownames(filtered) identical to rownames(res):",
+    identical(rownames(filtered), rownames(res)), "\n")
+
+ids  <- mapIds(org.Hs.eg.db, rownames(res), "ENTREZID", "ENSEMBL")
+ids2 <- mapIds(org.Hs.eg.db, rownames(filtered), "SYMBOL", "ENSEMBL")  # used by xCell
+
+pv_2 <- res$padj;  names(pv_2) <- ids    # ORA input: genes with padj <= 0.15
+tt   <- res$stat;  names(tt)   <- ids    # GSEA input: Wald statistic
+```
+
+## Over-representation analysis (genes with padj <= 0.15)
+
+```{r ora_go, message=FALSE, warning=FALSE}
+for (ont in c("BP", "CC", "MF")) {
+  ego <- enrichGO(gene = ids[which(pv_2 <= 0.15)], universe = ids, OrgDb = org.Hs.eg.db,
+                  ont = ont, pAdjustMethod = "BH", pvalueCutoff = 0.15, qvalueCutoff = 0.15,
+                  readable = TRUE)
+  if (nrow(as.data.frame(ego)) > 0) print(barplot(ego, showCategory = 20) + ggtitle(paste("GO", ont)))
+}
+```
+
+```{r ora_kegg, fig.height=16, fig.width=20, message=FALSE, warning=FALSE}
+kk <- enrichKEGG(gene = ids[which(pv_2 <= 0.15)], universe = ids,
+                 organism = "hsa", pvalueCutoff = 0.15)
+kegg_final <- read.csv(kegg_categories, sep = "")
+k2 <- merge(kk@result, kegg_final, by = "ID", all.x = TRUE)
+k2 <- k2[k2$p.adjust < 0.15, ]
+ggplot(k2, aes(x = Count / 324, y = fct_reorder(Description, Count / 324))) +
+  geom_point(aes(size = Count, color = p.adjust)) + theme_bw(base_size = 14) +
+  scale_colour_gradient(limits = c(0, 0.20), low = "purple") +
+  ylab(NULL) + xlab("GeneRatio") + ggtitle("KEGG enrichment")
+```
+
+```{r ora_reactome, fig.height=16, fig.width=20, message=FALSE, warning=FALSE}
+x <- enrichPathway(gene = ids[which(pv_2 <= 0.15)], pvalueCutoff = 0.15, readable = TRUE)
+reactome_final <- read.csv(reactome_categories, sep = "")
+z <- merge(x@result, reactome_final, by = "ID", all.x = TRUE)
+z <- z[z$p.adjust < 0.15, ]
+ggplot(z, aes(x = Count / 460, y = fct_reorder(Description, Count / 460))) +
+  geom_point(aes(size = Count, color = p.adjust)) + theme_bw(base_size = 14) +
+  scale_colour_gradient(limits = c(0, 0.20), low = "purple") +
+  ylab(NULL) + xlab("GeneRatio") + ggtitle("Reactome enrichment")
+```
+
+## GSEA (genes ranked by the DESeq2 Wald statistic)
+
+```{r gsea_go, message=FALSE, warning=FALSE}
+for (ont in c("BP", "CC", "MF")) {
+  ego2 <- gseGO(geneList = sort(tt[!is.na(names(tt))], decreasing = TRUE), ont = ont,
+                OrgDb = org.Hs.eg.db, minGSSize = 100, maxGSSize = 500, pvalueCutoff = 0.25)
+  if (nrow(as.data.frame(ego2)) > 0)
+    print(dotplot(ego2, showCategory = 10, split = ".sign", font.size = 7) +
+            facet_grid(. ~ .sign) + ggtitle(paste("GSEA GO", ont)))
+}
+```
+
+```{r gsea_kegg, fig.height=14, fig.width=20, message=FALSE, warning=FALSE}
+geneList <- sort(tt[!is.na(names(tt)) & !duplicated(names(tt))], decreasing = TRUE)
+
+set.seed(1)
+kk2 <- gseKEGG(geneList = geneList, organism = "hsa",
+               minGSSize = 10, maxGSSize = 1000, pvalueCutoff = 0.35)
+write.csv(as.data.frame(kk2), file.path(results_dir, "GSEA_KEGG_WT_vs_MUT.csv"), row.names = FALSE)
+dotplot(kk2, showCategory = 30, split = ".sign") + facet_grid(. ~ .sign)
+
+## Pathview maps used in the figures (OXPHOS, TCA cycle)
+old_wd <- setwd(figures_dir)
+for (pid in c("hsa00190", "hsa00020")) {
+  pathview(gene.data = geneList, pathway.id = pid, species = "hsa",
+           limit = list(gene = max(abs(geneList)), cpd = 1))
+}
+setwd(old_wd)
+```
+
+```{r gsea_reactome, message=FALSE, warning=FALSE}
+set.seed(123)
+pw2 <- gsePathway(geneList = geneList, organism = "human", exponent = 1,
+                  minGSSize = 10, maxGSSize = 1000, pvalueCutoff = 0.35,
+                  pAdjustMethod = "BH", verbose = TRUE)
+write.csv(as.data.frame(pw2), file.path(results_dir, "GSEA_Reactome_WT_vs_MUT.csv"), row.names = FALSE)
+dotplot(pw2, showCategory = 10, split = ".sign", font.size = 8) + facet_grid(. ~ .sign)
+```
+
+## Save objects reused by downstream scripts
+
+```{r save}
+save(res, res_df, kk2, pw2, dds, filtered, ids, ids2, tt, file = original_rdata)
+sessionInfo()
+```
