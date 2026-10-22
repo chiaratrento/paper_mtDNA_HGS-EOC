@@ -52,7 +52,6 @@ metadata are set once in `R/00_config.R`; these files are not distributed
 5. **Pathway enrichment**: over-representation analysis (`enrichGO`, `enrichKEGG`, `enrichPathway`) and GSEA on genes ranked by the DESeq2 Wald statistic (`gseGO`, `gseKEGG`, `gsePathway`). All p-values are BH-adjusted; the number of pathways significant at nominal p < 0.05, padj < 0.05 and padj < 0.15 is reported for every contrast. Leading-edge overlap between pathways is assessed with the Jaccard index.
 6. **Immune infiltration**: xCell scores compared between groups with the Wilcoxon rank-sum test (FDR-adjusted).
 
-**Note on the stratified analysis.** Contrasts involving the MID group (n = 7) rest on a small sample and showed poorly calibrated p-value distributions on diagnostic inspection; they are presented as hypothesis-generating only.
 
 ## Software requirements
 
@@ -66,7 +65,7 @@ R (≥ 4.5) with: `DESeq2`, `tximport`, `edgeR`, `EDASeq`, `clusterProfiler`, `R
 
 ## Citation
 
-Trento et al. Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer. *International Journal of Cancer*.
+Trento et al. Homoplasmic mitochondrial DNA variants associate with favorable prognosis in high-grade serous ovarian cancer.
 
 ## Contact
 
