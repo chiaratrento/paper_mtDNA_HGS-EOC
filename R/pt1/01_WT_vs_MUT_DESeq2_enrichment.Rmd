@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = normalizePath(file.path(getwd(), "..", "..")))
 ```
 
-Original analysis of the submitted manuscript (Fig. 2): near-homoplasmic
+Analysis of the submitted manuscript (Fig. 2): near-homoplasmic
 mtDNA variants vs all other samples, design `~ comp_3`.
 
 * Sequencing: Illumina, 150 bp paired-end

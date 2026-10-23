@@ -6,7 +6,7 @@
 ## between WT and MUT (comp_3). Produces the objects used by
 ## R/figures/figure_panel2_xCell.R.
 ##
-## Requires: R/original/01_WT_vs_MUT_DESeq2_enrichment.Rmd (saves `filtered`, `ids2`)
+## Requires: R/pt1/01_WT_vs_MUT_DESeq2_enrichment.Rmd (saves `filtered`, `ids2`)
 ## ============================================================================
 
 source("R/00_config.R")
