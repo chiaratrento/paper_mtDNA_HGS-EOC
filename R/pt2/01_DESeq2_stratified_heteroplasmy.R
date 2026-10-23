@@ -439,7 +439,7 @@ write.csv(as.data.frame(gsea_LOW_vs_HIGH),  paste0(out_dir, "GSEA_LOW_vs_HIGH.cs
 write.csv(as.data.frame(gsea_LOW_vs_MID),   paste0(out_dir, "GSEA_LOW_vs_MID.csv"),   row.names = FALSE)
 
 ## Quick dotplots per contrast, split by up/down (NES sign) - same style as
-## the original comp_3.Rmd GSE KEGG section
+##  GSE KEGG section
 for (obj_name in c("gsea_HIGH_vs_WT", "gsea_MID_vs_WT", "gsea_MID_vs_HIGH",
                    "gsea_LOW_vs_WT", "gsea_LOW_vs_HIGH", "gsea_LOW_vs_MID")) {
   obj <- get(obj_name)
@@ -456,9 +456,9 @@ for (obj_name in c("gsea_HIGH_vs_WT", "gsea_MID_vs_WT", "gsea_MID_vs_HIGH",
 ##
 ## Same ranked gene lists as the KEGG GSEA above (section 8), same
 ## rationale, using ReactomePA::gsePathway - matches the Reactome GSEA
-## block already present in the original comp_3.Rmd (`pw2 <- gsePathway(...)`).
+## (`pw2 <- gsePathway(...)`).
 ## pvalueCutoff = 0.35 here keeps everything through to reporting, exactly
-## as in the original script, so BH-corrected vs nominal can be compared
+## as in the script, so BH-corrected vs nominal can be compared
 ## explicitly afterwards (as for KEGG above) rather than pre-filtered away.
 ## ----------------------------------------------------------------------
 

@@ -19,7 +19,7 @@ library(DESeq2)
 library(ggplot2)
 library(RColorBrewer)
 
-out_dir <- file.path(results_dir, "revision/")
+out_dir <- file.path(results_dir, "pt2/")
 
 ## ----------------------------------------------------------------------
 ## 1. Load dds/vsd from script 01 (no re-import, no re-running DESeq)
@@ -168,7 +168,7 @@ write.csv(fisher_summary, paste0(out_dir, "fisher_BRCA_heteroplasmy_summary.csv"
 
 ## ============================================================================
 ## Notes:
-## - Requires R/revision/01_DESeq2_stratified_heteroplasmy.R to have been run
+## - Requires R/pt2/01_DESeq2_stratified_heteroplasmy.R to have been run
 ##   first (dds_heteroplasmy_group.rds / vsd_heteroplasmy_group.rds).
 ## - classify_brca() collapses germline/somatic testing into one status.
 ## - HRD and CCNE1 status (also requested by Reviewer 3 #6) are not available

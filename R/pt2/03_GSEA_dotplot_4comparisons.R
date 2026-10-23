@@ -8,7 +8,7 @@
 #   colour intensity = -log10(p.adjust) (darker = more significant), red/blue = direction
 #
 # Input: the GSEA KEGG csv files written by section 8 of
-# R/revision/01_DESeq2_stratified_heteroplasmy.R (gseKEGG, ranked by DESeq2 `stat`, BH-adjusted).
+# R/pt2/01_DESeq2_stratified_heteroplasmy.R (gseKEGG, ranked by DESeq2 `stat`, BH-adjusted).
 # HIGH vs LOW / HIGH vs MID are obtained from LOW_vs_HIGH / MID_vs_HIGH
 # by flipping the NES sign (pvalue and p.adjust unchanged).
 # ------------------------------------------------------------------
@@ -17,7 +17,7 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
-in_dir  <- file.path(results_dir, "revision")   # GSEA_*.csv from 01_DESeq2_stratified_heteroplasmy.R
+in_dir  <- file.path(results_dir, "pt2")   # GSEA_*.csv from 01_DESeq2_stratified_heteroplasmy.R
 out_dir <- in_dir
 
 # ---- 1. Comparisons, files and sign ------------------------------
